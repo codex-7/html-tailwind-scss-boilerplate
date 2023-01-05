@@ -29,7 +29,7 @@ gulp.task("browser-sync", function (done) {
     open: true,
     // tunnel: true,
   });
-  gulp.watch(["./src/**/*.html"]).on("change", reload); // [File path set]
+  gulp.watch(["./src/**/*"]).on("change", reload); // [File path set]
   done();
 });
 // == Browser-sync task
@@ -49,11 +49,11 @@ gulp.task("html", () => {
 // CSS task
 gulp.task("css", () => {
   return gulp
-    .src("./src/assets/scss/app.scss")
+    .src("./src/assets/scss/**/*.scss")
     .pipe(plumber())
     .pipe(sass({ outputStyle: "expanded" }))
+    .pipe(postcss([tailwind('./tailwind.config.js'), autoprefixer, cssnano]))
     .pipe(rename({ suffix: ".min" }))
-    .pipe(postcss([tailwind('./tailwind.config.js'), cssnano()]))
     .pipe(gulp.dest("public/css"))
     .pipe(browsersync.stream())
     .pipe(livereload());
@@ -88,7 +88,9 @@ gulp.task("js", () => {
 gulp.task(
   "default",
   gulp.series("html", "css", "js", "browser-sync", () => {
-    gulp.watch(["src/**/*.html"], gulp.series("html"));
+    // for tailwindcss, its needed to watch html for css too.
+    // coz, tailwind will export only used classes in htmls
+    gulp.watch(["src/**/*.html"], gulp.series(["html", "css"]));
     gulp.watch(["src/assets/scss/**/*.scss"], gulp.series("css"));
     gulp.watch(["src/assets/js/**/*.js"], gulp.series("js"));
     // gulp.watch(
